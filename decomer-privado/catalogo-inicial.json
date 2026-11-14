@@ -1,0 +1,368 @@
+{
+  "loja": {
+    "whatsapp": "5561981050455",
+    "chavePix": "+5561981050455",
+    "ingredientes": "",
+    "alergenicos": "",
+    "razaoSocial": "",
+    "cnpj": "",
+    "endereco": "",
+    "marca": "De Comer",
+    "submarca": "Biscoitos artesanais",
+    "responsavel": "Josiane",
+    "instagram": "jozycostacurta",
+    "faixa": "Encomendas até 15/12 ou até atingir a capacidade",
+    "titulo": "Natal De Comer",
+    "chamada": "Biscoitos artesanais para presentear e dividir à mesa.",
+    "tituloCatalogo": "Catálogo de Natal",
+    "descCatalogo": "Escolha os modelos e as quantidades para a sua encomenda.",
+    "tituloEncomendas": "Como encomendar",
+    "retirada": "Retire no local combinado. Também é possível solicitar Uber por conta própria ou combinar envio pelos Correios, com frete por conta do cliente. Combine condições de transporte e cancelamento antes de pagar o sinal.",
+    "tituloMassa": "Sobre a massa",
+    "sobreMassa": "Os biscoitos têm validade de 60 dias e são feitos sem conservantes. Guarde em local escuro, fora da geladeira.",
+    "consultaMassa": "Consulte a Josiane sobre a composição e os alergênicos antes de encomendar.",
+    "descSite": "Escolha biscoitos artesanais, canecas e presentes de Natal da De Comer. Monte sua sacola e envie a encomenda pelo WhatsApp.",
+    "destaquePrincipal": "DC-001",
+    "destaqueSecundario": "DC-022",
+    "recebendo": true,
+    "logo": null,
+    "etapa1Titulo": "Escolha os biscoitos",
+    "etapa1Texto": "Monte a sacola com os modelos do catálogo. As encomendas vão até 15/12 ou até atingir a capacidade de produção.",
+    "etapa2Titulo": "Confirme pelo WhatsApp",
+    "etapa2Texto": "Informe seu nome e WhatsApp na sacola. Na página do pedido, fale com a loja para combinar a data e a entrega.",
+    "etapa3Titulo": "Pague o sinal de 50%",
+    "etapa3Texto": "A loja libera o Pix da entrada após confirmar a encomenda. Guarde o link do pedido para voltar e pagar o saldo.",
+    "recebedorPix": "Josyanne Daros Costacurta",
+    "prazo": "2026-12-15"
+  },
+  "categorias": {
+    "presentes": "Para presentear",
+    "caixas": "Caixas",
+    "canecas": "Canecas",
+    "cartoes": "Biscoitos com cartão",
+    "decorados": "Decorados",
+    "trios": "Trios"
+  },
+  "catalogo": [
+    {
+      "id": "DC-001",
+      "arquivo": "decomer_001",
+      "categoria": "presentes",
+      "nome": "Caixa decorada com 10 biscoitos de baunilha e caramelo",
+      "centavos": 3800,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 495
+      },
+      "grande": {
+        "w": 940,
+        "h": 1163
+      }
+    },
+    {
+      "id": "DC-007",
+      "arquivo": "decomer_007",
+      "categoria": "presentes",
+      "nome": "Pote com 8 biscoitos",
+      "centavos": 9500,
+      "modelo": "",
+      "pequena": {
+        "w": 332,
+        "h": 540
+      },
+      "grande": {
+        "w": 763,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-004",
+      "arquivo": "decomer_004",
+      "categoria": "presentes",
+      "nome": "Big boneco de Natal",
+      "centavos": 5000,
+      "modelo": "",
+      "pequena": {
+        "w": 388,
+        "h": 540
+      },
+      "grande": {
+        "w": 890,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-019",
+      "arquivo": "decomer_019",
+      "categoria": "caixas",
+      "nome": "Caixa com 10 Biscoitos",
+      "centavos": 13000,
+      "modelo": "Guirlandas com laço",
+      "pequena": {
+        "w": 400,
+        "h": 482
+      },
+      "grande": {
+        "w": 714,
+        "h": 861
+      }
+    },
+    {
+      "id": "DC-020",
+      "arquivo": "decomer_020",
+      "categoria": "caixas",
+      "nome": "Caixa com 10 Biscoitos",
+      "centavos": 13000,
+      "modelo": "Árvores com laço",
+      "pequena": {
+        "w": 400,
+        "h": 347
+      },
+      "grande": {
+        "w": 736,
+        "h": 638
+      }
+    },
+    {
+      "id": "DC-021",
+      "arquivo": "decomer_021",
+      "categoria": "caixas",
+      "nome": "Caixa com 10 Un",
+      "centavos": 13000,
+      "modelo": "Árvores verdes",
+      "pequena": {
+        "w": 400,
+        "h": 523
+      },
+      "grande": {
+        "w": 940,
+        "h": 1229
+      }
+    },
+    {
+      "id": "DC-003",
+      "arquivo": "decomer_003",
+      "categoria": "canecas",
+      "nome": "Caneca Especial com 6 biscoitos",
+      "centavos": 9500,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 533
+      },
+      "grande": {
+        "w": 930,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-009",
+      "arquivo": "decomer_009",
+      "categoria": "canecas",
+      "nome": "Caneca Gingerbread com 2 pirulitos e 2 biscoitos grandes",
+      "centavos": 9500,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 415
+      },
+      "grande": {
+        "w": 940,
+        "h": 976
+      }
+    },
+    {
+      "id": "DC-012",
+      "arquivo": "decomer_012",
+      "categoria": "canecas",
+      "nome": "Big caneca 700 mL e 7 biscoitos de casinha",
+      "centavos": 15000,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 521
+      },
+      "grande": {
+        "w": 940,
+        "h": 1225
+      }
+    },
+    {
+      "id": "DC-013",
+      "arquivo": "decomer_013",
+      "categoria": "canecas",
+      "nome": "Caneca com 7 biscoitos",
+      "centavos": 15000,
+      "modelo": "",
+      "pequena": {
+        "w": 367,
+        "h": 540
+      },
+      "grande": {
+        "w": 842,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-014",
+      "arquivo": "decomer_014",
+      "categoria": "cartoes",
+      "nome": "Biscoito e cartão",
+      "centavos": 1800,
+      "modelo": "Duende",
+      "pequena": {
+        "w": 400,
+        "h": 472
+      },
+      "grande": {
+        "w": 940,
+        "h": 1110
+      }
+    },
+    {
+      "id": "DC-015",
+      "arquivo": "decomer_015",
+      "categoria": "cartoes",
+      "nome": "Biscoito e cartão",
+      "centavos": 1800,
+      "modelo": "Boneco de gengibre",
+      "pequena": {
+        "w": 400,
+        "h": 528
+      },
+      "grande": {
+        "w": 939,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-016",
+      "arquivo": "decomer_016",
+      "categoria": "cartoes",
+      "nome": "Biscoito e cartão",
+      "centavos": 1800,
+      "modelo": "Árvore com laço verde",
+      "pequena": {
+        "w": 400,
+        "h": 517
+      },
+      "grande": {
+        "w": 940,
+        "h": 1216
+      }
+    },
+    {
+      "id": "DC-017",
+      "arquivo": "decomer_017",
+      "categoria": "cartoes",
+      "nome": "Biscoito e cartão",
+      "centavos": 1800,
+      "modelo": "Árvore com estrelas",
+      "pequena": {
+        "w": 400,
+        "h": 510
+      },
+      "grande": {
+        "w": 940,
+        "h": 1197
+      }
+    },
+    {
+      "id": "DC-018",
+      "arquivo": "decomer_018",
+      "categoria": "cartoes",
+      "nome": "Biscoito e cartão",
+      "centavos": 1800,
+      "modelo": "Personagem de chapéu preto",
+      "pequena": {
+        "w": 400,
+        "h": 465
+      },
+      "grande": {
+        "w": 940,
+        "h": 1093
+      }
+    },
+    {
+      "id": "DC-011",
+      "arquivo": "decomer_011",
+      "categoria": "decorados",
+      "nome": "Mini guirlanda de biscoito",
+      "centavos": 6500,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 470
+      },
+      "grande": {
+        "w": 899,
+        "h": 1056
+      }
+    },
+    {
+      "id": "DC-023",
+      "arquivo": "decomer_023",
+      "categoria": "decorados",
+      "nome": "6 Biscoitos Casario",
+      "centavos": 6500,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 201
+      },
+      "grande": {
+        "w": 738,
+        "h": 370
+      }
+    },
+    {
+      "id": "DC-022",
+      "arquivo": "decomer_022",
+      "categoria": "trios",
+      "nome": "Trio Ginger",
+      "centavos": 6500,
+      "modelo": "",
+      "pequena": {
+        "w": 400,
+        "h": 247
+      },
+      "grande": {
+        "w": 940,
+        "h": 580
+      }
+    },
+    {
+      "id": "DC-024",
+      "arquivo": "decomer_024",
+      "categoria": "trios",
+      "nome": "Trio",
+      "centavos": 4500,
+      "modelo": "",
+      "pequena": {
+        "w": 288,
+        "h": 540
+      },
+      "grande": {
+        "w": 661,
+        "h": 1240
+      }
+    },
+    {
+      "id": "DC-TRIO",
+      "arquivo": "trio_biscoitos_65gr",
+      "categoria": "trios",
+      "nome": "Trio com biscoitos",
+      "centavos": 6500,
+      "modelo": "",
+      "pequena": {
+        "w": 349,
+        "h": 540
+      },
+      "grande": {
+        "w": 738,
+        "h": 1141
+      }
+    }
+  ]
+}

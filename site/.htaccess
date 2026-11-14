@@ -1,0 +1,14 @@
+DirectoryIndex disabled
+DirectoryIndex index.php
+Options -Indexes
+<FilesMatch "(?i)^(?:\.|bootstrap\.php$|index\.html$|configuracao\.js$|catalogo\.js$|.*\.(?:zip|sqlite3?|db|bak|log|ini|sql|env)(?:$|[-.]))">
+  Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'"
+  Header always unset X-Powered-By
+  Header always set Referrer-Policy "no-referrer"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>

@@ -1,0 +1,62 @@
+CREATE TABLE IF NOT EXISTS loja (
+    id TINYINT UNSIGNED PRIMARY KEY,
+    configuracao TEXT NOT NULL,
+    categorias TEXT NOT NULL,
+    revisao INT UNSIGNED NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS produtos (
+    id VARCHAR(25) PRIMARY KEY,
+    nome VARCHAR(90) NOT NULL,
+    modelo VARCHAR(85) NOT NULL,
+    centavos INT UNSIGNED NOT NULL,
+    categoria VARCHAR(32) NOT NULL,
+    descricao TEXT NOT NULL,
+    posicao SMALLINT UNSIGNED NOT NULL,
+    publicado TINYINT UNSIGNED NOT NULL,
+    foto TEXT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS pedidos (
+    codigo CHAR(27) PRIMARY KEY,
+    criado BIGINT UNSIGNED NOT NULL,
+    revisao INT UNSIGNED NOT NULL,
+    nome VARCHAR(80) NOT NULL,
+    itens MEDIUMTEXT NOT NULL,
+    total BIGINT UNSIGNED NOT NULL,
+    sinal BIGINT UNSIGNED NOT NULL,
+    restante BIGINT UNSIGNED NOT NULL,
+    estado VARCHAR(18) NOT NULL DEFAULT 'solicitado',
+    pix VARCHAR(20),
+    recebedor VARCHAR(100),
+    whatsapp VARCHAR(15) NOT NULL,
+    consulta CHAR(64) NOT NULL UNIQUE,
+    assinatura CHAR(64) NOT NULL,
+    confirmado BIGINT UNSIGNED,
+    pago BIGINT UNSIGNED,
+    metodo VARCHAR(10),
+    referencia_pix VARCHAR(32) UNIQUE,
+    INDEX pedidos_estado_data (estado,criado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS contatos_pedidos (
+    codigo CHAR(27) PRIMARY KEY,
+    telefone VARCHAR(13) NOT NULL,
+    FOREIGN KEY (codigo) REFERENCES pedidos(codigo) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS saldos_pedidos (
+    codigo CHAR(27) PRIMARY KEY,
+    recebido BIGINT UNSIGNED NOT NULL,
+    metodo VARCHAR(10) NOT NULL,
+    referencia_pix VARCHAR(32) UNIQUE,
+    FOREIGN KEY (codigo) REFERENCES pedidos(codigo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS limites (
+    chave VARCHAR(90) PRIMARY KEY,
+    ate BIGINT UNSIGNED NOT NULL,
+    usos SMALLINT UNSIGNED NOT NULL,
+    INDEX limites_expiracao (ate)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+CREATE TABLE IF NOT EXISTS eventos (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    instante BIGINT UNSIGNED NOT NULL,
+    acao VARCHAR(100) NOT NULL,
+    alvo VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
