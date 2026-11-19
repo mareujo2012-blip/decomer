@@ -450,5 +450,6 @@ function consultarPedido(PDO $pdo, stdClass $dados): array
     if (in_array($linha['estado'],['quitado','cancelado'],true)) {
         $linha['whatsapp'] = estadoLoja($pdo)['loja']['whatsapp'];
     }
-    return pedidoPublico($linha) + ['itens'=>json_decode($linha['itens'],true,16,JSON_THROW_ON_ERROR)];
+    return pedidoPublico($linha) + ['itens'=>json_decode($linha['itens'],true,16,JSON_THROW_ON_ERROR),
+        'nome'=>$linha['nome'], 'criado'=>(int)$linha['criado']];
 }

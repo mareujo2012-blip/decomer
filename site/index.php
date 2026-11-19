@@ -40,7 +40,7 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
   <link rel="preload" href="assets/amatic-sc-bold.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="assets/estilo.css?v=7">
-  <script src="assets/pedido.js?v=3" defer></script>
+  <script src="assets/pedido.js?v=4" defer></script>
   <script src="assets/loja.js?v=5" defer></script>
   <script src="assets/iniciar.js" defer></script>
   <title><?= h($titulo.' | '.$loja['submarca']) ?></title>

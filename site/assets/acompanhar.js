@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { dinheiro, linkWhatsApp, requisitar } = window.PedidoDeComer;
+  const { dinheiro, linkWhatsApp, requisitar, mensagemPedido } = window.PedidoDeComer;
   const el = id => document.getElementById(id);
   const chave = 'decomer-pedido-v1:' + new URL('./', location.href).pathname;
   const tokenValido = token => typeof token === 'string' && /^[a-f0-9]{32}(?:[a-f0-9]{16})?$/.test(token);
@@ -15,7 +15,7 @@
   const parcelas = [...document.querySelectorAll('[data-parcela]')];
   const estadoPedido = {
     solicitado: ['Aguardando confirmação', 'Combine a data e a disponibilidade com a loja. O Pix da entrada aparece aqui depois da confirmação.'],
-    confirmado: ['Pague 50% agora', 'Este Pix cobre apenas a entrada. A loja confirma a encomenda após conferir o pagamento.'],
+    confirmado: ['Pague 50% agora', 'Este Pix cobre apenas a entrada. Depois de pagar, toque em “Já paguei” para enviar o pedido à loja pelo WhatsApp.'],
     sinal_recebido: ['Entrada confirmada', 'A loja conferiu o pagamento da entrada. Combine a retirada pelo WhatsApp.'],
     quitado: ['Pagamento completo', 'A loja confirmou o pagamento completo. Siga o combinado para retirar ou receber a encomenda.'],
     cancelado: ['Pedido cancelado', 'Fale com a loja se tiver alguma dúvida sobre este pedido.'],
@@ -134,10 +134,12 @@
     const lembrete = el('lembrete-saldo');
     lembrete.hidden = encerrado || p.restante === 0;
     lembrete.textContent = 'Os outros 50% (' + dinheiro(p.restante) + ') são pagos à loja na retirada.';
-    const texto = encerrado || p.entrada_expirada
-      ? 'Olá! Preciso de ajuda com a encomenda ' + p.codigo + '.'
-      : 'Olá! Quero combinar a retirada da encomenda ' + p.codigo + '.';
-    el('whatsapp-loja').href = linkWhatsApp(p.whatsapp, texto);
+    const abertura = p.entrada_expirada ? 'Olá! O prazo do Pix deste pedido encerrou e preciso de ajuda.'
+      : p.estado === 'sinal_recebido' ? 'Olá! Quero combinar a retirada deste pedido.'
+      : encerrado ? 'Olá! Preciso de ajuda com este pedido.'
+      : 'Olá! Tenho uma dúvida sobre este pedido.';
+    el('whatsapp-loja').href = linkWhatsApp(p.whatsapp, mensagemPedido(p, { abertura }));
+    el('whatsapp-pago').href = linkWhatsApp(p.whatsapp, mensagemPedido(p, { pago: true }));
     atualizar.hidden = !pix;
     if (pix) {
       el('pix-titular').textContent = pix.recebedor;

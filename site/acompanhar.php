@@ -25,9 +25,9 @@ $voltarLoja = './';
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
   <link rel="stylesheet" href="assets/estilo.css?v=7">
-  <script src="assets/pedido.js?v=3" defer></script>
+  <script src="assets/pedido.js?v=4" defer></script>
   <script src="assets/qrcode-2.0.4.js?v=1" defer></script>
-  <script src="assets/acompanhar.js?v=2" defer></script>
+  <script src="assets/acompanhar.js?v=3" defer></script>
   <title>Pix da entrada | <?= h($loja['marca']) ?></title>
 </head>
 <body class="pagina-pedido">
@@ -78,6 +78,7 @@ $voltarLoja = './';
               <input type="text" id="pix-texto" readonly autocomplete="off">
             </div>
             <p id="pix-feedback" class="feedback-pedido" role="status"></p>
+            <a id="whatsapp-pago" class="botao botao-vinho" rel="noreferrer">Já paguei · enviar pedido no WhatsApp</a>
           </div>
         </div>
         <div class="acoes-acompanhamento">

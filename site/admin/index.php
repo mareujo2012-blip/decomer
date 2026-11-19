@@ -103,6 +103,18 @@ function formAcao(string $acao, ?string $token = null): void
     echo '<input type="hidden" name="csrf" value="'.h($token ?? $_SESSION['csrf'] ?? '').'"><input type="hidden" name="acao" value="'.h($acao).'">';
 }
 
+function listaPedidos(array $pedidos, array $rotulos): void
+{
+    echo '<ul class="eventos">';
+    foreach ($pedidos as $p) {
+        echo '<li class="pedido-recente"><div><a href="?aba=pedidos&amp;codigo='.h($p['codigo']).'#pedido-detalhe">'.h($p['nome'] !== '' ? $p['nome'] : 'Cliente sem nome').'</a>'
+            .'<span>'.h(dataLocal((int)$p['criado'])).' · '.h($p['codigo']).'</span></div>'
+            .'<span class="estado-pedido" data-estado="'.h($p['estado']).'">'.h($rotulos[$p['estado']]).'</span>'
+            .'<strong>'.h(brl((int)$p['total'])).'</strong></li>';
+    }
+    echo '</ul>';
+}
+
 function dataLocal(int $data): string
 {
     return (new DateTimeImmutable('@'.$data))->setTimezone(new DateTimeZone('America/Sao_Paulo'))->format('d/m/Y H:i');
@@ -136,7 +148,25 @@ if ($autenticado) {
         $saldoRecebido = $pedido && $pedido['estado'] === 'quitado'
             ? consulta($pdo,'SELECT * FROM saldos_pedidos WHERE codigo=?',[$pedido['codigo']])->fetch()
             : false;
-        $recentes = $pdo->query("SELECT codigo, criado, total, estado FROM pedidos ORDER BY criado DESC LIMIT 60")->fetchAll();
+        // A mensagem do WhatsApp não traz código: a busca aceita nome, WhatsApp ou código.
+        $termo = $_GET['busca'] ?? '';
+        $termo = is_string($termo) && mb_check_encoding($termo,'UTF-8') ? trim(mb_substr($termo,0,80,'UTF-8')) : '';
+        if ($termo !== '' && preg_match('/\ADC-[A-F0-9]{24}\z/Di',$termo) === 1) {
+            $pedidoBusca = strtoupper($termo);
+            $pedido = consulta($pdo,'SELECT p.*, c.telefone FROM pedidos p LEFT JOIN contatos_pedidos c ON c.codigo=p.codigo WHERE p.codigo=?',[$pedidoBusca])->fetch();
+            $saldoRecebido = $pedido && $pedido['estado'] === 'quitado'
+                ? consulta($pdo,'SELECT * FROM saldos_pedidos WHERE codigo=?',[$pedido['codigo']])->fetch()
+                : false;
+            $termo = '';
+        }
+        $encontrados = [];
+        if ($termo !== '') {
+            $digitos = preg_replace('/\D/','',$termo);
+            $encontrados = strlen($digitos) >= 4 && preg_match('/\A[0-9\s()+.-]+\z/',$termo) === 1
+                ? consulta($pdo,'SELECT p.codigo, p.criado, p.total, p.estado, p.nome FROM pedidos p JOIN contatos_pedidos c ON c.codigo=p.codigo WHERE c.telefone LIKE ? ORDER BY p.criado DESC LIMIT 30',['%'.$digitos.'%'])->fetchAll()
+                : consulta($pdo,'SELECT codigo, criado, total, estado, nome FROM pedidos WHERE nome COLLATE utf8mb4_unicode_ci LIKE ? ORDER BY criado DESC LIMIT 30',['%'.addcslashes($termo,'%_\\').'%'])->fetchAll();
+        }
+        $recentes = $pdo->query("SELECT codigo, criado, total, estado, nome FROM pedidos ORDER BY criado DESC LIMIT 60")->fetchAll();
     }
 }
 ?>
@@ -302,10 +332,17 @@ if ($autenticado) {
   <?php elseif ($aba==='pedidos'): ?>
     <h1>Pedidos</h1>
     <form method="get" class="painel linha-form">
-      <input type="hidden" name="aba" value="pedidos"><label>Código recebido no WhatsApp <input name="codigo" value="<?= h($pedidoBusca) ?>" maxlength="27" placeholder="DC-…" required></label>
+      <input type="hidden" name="aba" value="pedidos"><label>Buscar pedido <input name="busca" value="<?= h($termo !== '' ? $termo : $pedidoBusca) ?>" maxlength="80" placeholder="Nome, WhatsApp ou código" required></label>
       <button class="botao principal">Conferir pedido</button>
     </form>
-    <?php if ($pedidoBusca && !$pedido): ?><p class="alerta erro">Pedido não encontrado. Confira o código no WhatsApp.</p><?php endif; ?>
+    <?php if ($pedidoBusca && !$pedido): ?><p class="alerta erro">Pedido não encontrado.</p><?php endif; ?>
+    <?php if ($termo !== ''): ?>
+      <section class="painel">
+        <h2>Resultado da busca</h2>
+        <?php if (!$encontrados): ?><p class="muted">Nenhum pedido encontrado para “<?= h($termo) ?>”.</p><?php endif; ?>
+        <?php listaPedidos($encontrados,$rotulos); ?>
+      </section>
+    <?php endif; ?>
     <?php if ($pedido): ?>
       <section class="painel" id="pedido-detalhe">
         <h2><?= h($pedido['codigo']) ?></h2>
@@ -375,15 +412,7 @@ if ($autenticado) {
     <section class="painel">
       <h2>Pedidos recentes</h2>
       <?php if (!$recentes): ?><p class="muted">Nenhum pedido registrado.</p><?php endif; ?>
-      <ul class="eventos">
-        <?php foreach ($recentes as $p): ?>
-          <li class="pedido-recente">
-            <div><a href="?aba=pedidos&amp;codigo=<?= h($p['codigo']) ?>#pedido-detalhe"><?= h($p['codigo']) ?></a><span><?= h(dataLocal((int)$p['criado'])) ?></span></div>
-            <span class="estado-pedido" data-estado="<?= h($p['estado']) ?>"><?= h($rotulos[$p['estado']]) ?></span>
-            <strong><?= h(brl((int)$p['total'])) ?></strong>
-          </li>
-        <?php endforeach; ?>
-      </ul>
+      <?php listaPedidos($recentes,$rotulos); ?>
     </section>
   <?php endif; ?>
 <?php endif; ?>

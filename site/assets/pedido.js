@@ -61,7 +61,31 @@
     return url.href;
   }
 
-  const pedido = Object.freeze({ limpar, resumir, linkWhatsApp, validarNome, dinheiro, maximo, requisitar, linkPedido });
+  const dataPedido = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const horaPedido = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+
+  // Texto que o cliente envia à loja pelo WhatsApp: quem comprou, o quê e quanto. O código do pedido fica só no painel.
+  function mensagemPedido(dados, { pago = false, abertura = '' } = {}) {
+    const nome = (typeof dados.nome === 'string' && dados.nome.trim()) || 'Cliente';
+    const itens = (Array.isArray(dados.itens) ? dados.itens : []).map(item =>
+      '• ' + item.quantidade + '× ' + item.nome + (item.modelo ? ' · ' + item.modelo : '') + ' — ' + dinheiro(item.subtotal));
+    const linhas = [
+      abertura || (pago ? '*Novo pedido*' : 'Olá! Quero falar sobre este pedido.'),
+      '*' + nome + '* comprou:',
+      ...itens,
+      '',
+      'Total: ' + dinheiro(dados.total),
+      (pago ? 'Entrada de 50% paga via Pix: ' : 'Entrada de 50% via Pix: ') + dinheiro(dados.sinal),
+    ];
+    if (dados.restante > 0) linhas.push('Restante na retirada: ' + dinheiro(dados.restante));
+    if (Number.isInteger(dados.criado) && dados.criado > 0) {
+      const quando = new Date(dados.criado * 1000);
+      linhas.push('Pedido feito em ' + dataPedido.format(quando) + ' às ' + horaPedido.format(quando));
+    }
+    return linhas.join('\n');
+  }
+
+  const pedido = Object.freeze({ limpar, resumir, linkWhatsApp, validarNome, dinheiro, maximo, requisitar, linkPedido, mensagemPedido });
   if (typeof module === 'object' && module.exports) module.exports = pedido;
   else window.PedidoDeComer = pedido;
 })();
