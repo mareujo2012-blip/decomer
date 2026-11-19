@@ -8,6 +8,17 @@ function cookieAdmin(): string
     return https() ? '__Host-decomer-admin' : 'decomer-admin-local';
 }
 
+function cookieDispositivo(): string
+{
+    return https() ? '__Host-decomer-dispositivo' : 'decomer-dispositivo-local';
+}
+
+/** Marca do aparelho que já entrou; muda com a troca de senha, porque deriva da geração do acesso. */
+function marcaDispositivo(array $admin): string
+{
+    return hash_hmac('sha256','dispositivo/'.$admin['geracao'],hex2bin($admin['formulario']));
+}
+
 function iniciarSessao(): void
 {
     $pasta = pastaDados().'/sessoes';
@@ -158,9 +169,17 @@ function autenticar(PDO $pdo, array $admin, mixed $email, mixed $senha): bool
 {
     $rede = 'login:rede:'.hash('sha256', $admin['geracao'].'/'.clienteIp());
     $conta = 'login:conta:'.$admin['geracao'];
-    transacao($pdo, fn () => limites($pdo, [[$rede,8,900],[$conta,40,300]]));
+    $marca = marcaDispositivo($admin);
+    $recebida = $_COOKIE[cookieDispositivo()] ?? null;
+    // O aparelho que já entrou fica fora do limite da conta, que tentativas distribuídas poderiam manter esgotado.
+    $regras = [[$rede,8,900]];
+    if (!is_string($recebida) || !hash_equals($marca,$recebida)) $regras[] = [$conta,40,300];
+    transacao($pdo, fn () => limites($pdo, $regras));
     $endereco = emailAdmin($email);
-    if (!senhaConfere($senha,$admin['senha']) || $endereco === null || !hash_equals($admin['email'],$endereco)) return false;
+    if (!senhaConfere($senha,$admin['senha']) || $endereco === null || !hash_equals($admin['email'],$endereco)) {
+        error_log('De Comer: login recusado no painel (rede '.substr(clienteIp(),0,12).')');
+        return false;
+    }
     transacao($pdo, function () use ($pdo,$rede,$conta): void {
         consulta($pdo,'DELETE FROM limites WHERE chave IN (?,?)',[$rede,$conta]);
         evento($pdo,'Entrada no painel','administrador');
@@ -168,6 +187,7 @@ function autenticar(PDO $pdo, array $admin, mixed $email, mixed $senha): bool
     if (session_status() !== PHP_SESSION_ACTIVE) iniciarSessao();
     if (!session_regenerate_id(true)) throw new RuntimeException('Sessão indisponível.');
     $_SESSION = ['geracao'=>$admin['geracao'],'inicio'=>time(),'atividade'=>time(),'csrf'=>bin2hex(random_bytes(32))];
+    setcookie(cookieDispositivo(), $marca, ['expires'=>time()+90*86400,'path'=>'/','secure'=>https(),'httponly'=>true,'samesite'=>'Strict']);
     return true;
 }
 

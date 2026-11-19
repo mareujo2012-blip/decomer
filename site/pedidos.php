@@ -24,7 +24,7 @@ try {
     $acao = $_GET['acao'] ?? '';
     if (!in_array($acao,['criar','consultar'],true)) throw new Falha(404, 'Ação indisponível.');
     transacao($pdo,fn () => $acao === 'criar'
-        ? limites($pdo,[['pedido:'.clienteIp(),18,600]])
+        ? limites($pdo,[['pedido:'.clienteIp(),18,600],['pedido:rede:'.redeCliente(),40,600]])
         : limites($pdo,[['consulta:'.clienteIp(),90,600]]));
     try { $dados = json_decode($corpo,false,12,JSON_THROW_ON_ERROR); }
     catch (JsonException) { throw new Falha(400, 'Pedido inválido.'); }

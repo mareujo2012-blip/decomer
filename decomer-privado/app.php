@@ -16,6 +16,11 @@ final class Falha extends RuntimeException
     }
 }
 
+/** Problema de instalação: a mensagem vai para o log e para o terminal, nunca para o visitante. */
+final class FalhaInstalacao extends RuntimeException
+{
+}
+
 function h(mixed $valor): string
 {
     return htmlspecialchars((string)$valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -88,6 +93,10 @@ function responderJson(mixed $valor, int $codigo = 200): never
 function falhaPublica(Throwable $erro): array
 {
     if ($erro instanceof Falha) return [$erro->http, $erro->getMessage()];
+    if ($erro instanceof FalhaInstalacao) {
+        error_log('De Comer: instalação incompleta: '.$erro->getMessage());
+        return [503, 'Serviço indisponível. Tente novamente mais tarde.'];
+    }
     error_log('De Comer: falha interna em '.$erro->getFile().':'.$erro->getLine().' ('.get_class($erro).')');
     return [503, 'Serviço indisponível. Tente novamente mais tarde.'];
 }
@@ -105,7 +114,7 @@ function conectarBanco(): PDO
     umask(0077);
     $dir = pastaDados();
     if (!is_dir($dir) || is_link($dir) || (fileperms($dir) & 0077) !== 0) {
-        throw new Falha(503, 'Use permissão 700 na pasta de dados da loja.');
+        throw new FalhaInstalacao('Use permissão 700 na pasta de dados da loja.');
     }
     $arquivo = $dir.'/banco.json';
     $opcoes = [
@@ -114,14 +123,14 @@ function conectarBanco(): PDO
         PDO::ATTR_STRINGIFY_FETCHES => false,
     ];
     if (!is_file($arquivo) || is_link($arquivo)) {
-        throw new Falha(503,'Configure o banco e inicialize a loja pelo guia de instalação.');
+        throw new FalhaInstalacao('Configure o banco e inicialize a loja pelo guia de instalação.');
     }
-    if ((fileperms($arquivo) & 0077) !== 0) throw new Falha(503,'Use permissão 600 no arquivo de conexão.');
+    if ((fileperms($arquivo) & 0077) !== 0) throw new FalhaInstalacao('Use permissão 600 no arquivo de conexão.');
     $c = json_decode(file_get_contents($arquivo),true,8,JSON_THROW_ON_ERROR);
     if (!is_array($c) || !in_array($c['host']??null,['localhost','127.0.0.1'],true)
         || !is_string($c['banco']??null) || preg_match('/\A[a-zA-Z0-9_]{1,64}\z/D',$c['banco']) !== 1
         || !is_string($c['usuario']??null) || !is_string($c['senha']??null) || $c['senha'] === '') {
-        throw new Falha(503,'Confira os dados do banco na pasta privada.');
+        throw new FalhaInstalacao('Confira os dados do banco na pasta privada.');
     }
     $dsn = 'mysql:host='.$c['host'].';dbname='.$c['banco'].';charset=utf8mb4';
     if (emDesenvolvimento() && getenv('DECOMER_DB_SOCKET')) {
@@ -291,6 +300,16 @@ function clienteIp(): string
         $bin = str_starts_with($bin,str_repeat("\0",10)."\xff\xff") ? substr($bin,12) : substr($bin,0,8);
     }
     return hash('sha256', $bin === false ? 'desconhecido' : $bin);
+}
+
+function redeCliente(): string
+{
+    // Um /48 IPv6 contém 65.536 redes /64; agrupá-lo impede que uma só alocação esgote o limite global.
+    $bin = @inet_pton($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($bin !== false && strlen($bin) === 16 && !str_starts_with($bin,str_repeat("\0",10)."\xff\xff")) {
+        return hash('sha256', 'rede48/'.substr($bin,0,6));
+    }
+    return clienteIp();
 }
 
 function evento(PDO $pdo, string $acao, string $alvo): void

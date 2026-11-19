@@ -79,6 +79,7 @@ try {
     echo 'Senha inicial gerada: '.$senha."\n";
     echo "Entre em /admin/ com o e-mail e a senha. Você pode trocar a senha na aba Minha conta.\n";
 } catch (Throwable $e) {
-    fwrite(STDERR, 'Falha ao configurar o painel. Confira PHP, extensões e permissões da pasta privada.'."\n");
+    fwrite(STDERR, ($e instanceof FalhaInstalacao ? $e->getMessage()
+        : 'Falha ao configurar o painel. Confira PHP, extensões e permissões da pasta privada.')."\n");
     exit(1);
 }
