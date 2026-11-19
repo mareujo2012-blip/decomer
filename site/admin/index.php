@@ -148,7 +148,7 @@ if ($autenticado) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title><?= h($autenticado ? $abas[$aba].' | '.$loja['marca'] : 'Administração | De Comer') ?></title>
   <link rel="icon" href="../assets/img/icone.png">
-  <link rel="stylesheet" href="../assets/painel.css?v=3">
+  <link rel="stylesheet" href="../assets/painel.css?v=4">
 </head>
 <body class="<?= $autenticado?'painel-autenticado':'painel-login' ?>">
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
@@ -195,11 +195,11 @@ if ($autenticado) {
     <h1>Visão geral</h1>
     <div class="metricas">
       <a href="?aba=produtos"><strong><?= count(array_filter($lista,static fn($p)=>$p['publicado'])) ?></strong><span>Produtos publicados</span></a>
-      <a href="?aba=pedidos"><strong><?= h(consulta($pdo,"SELECT COUNT(*) FROM pedidos WHERE estado='solicitado' AND criado>=?",[time()-PRAZO_PEDIDO])->fetchColumn()) ?></strong><span>Pedidos aguardando</span></a>
+      <a href="?aba=pedidos"><strong><?= h(consulta($pdo,"SELECT COUNT(*) FROM pedidos WHERE estado IN ('confirmado','solicitado') AND (confirmado IS NOT NULL OR criado>=?)",[time()-PRAZO_PEDIDO])->fetchColumn()) ?></strong><span>Aguardando entrada</span></a>
       <a href="?aba=pagina&amp;secao=encomendas"><strong><?= encomendasAbertas($loja)?'Abertas':'Pausadas' ?></strong><span>Encomendas</span></a>
     </div>
-    <?php if ($loja['chavePix'] && empty($loja['recebedorPix'])): ?>
-      <p class="alerta">Preencha o titular bancário na <a href="?aba=pix">seção Pix</a> para liberar pagamentos.</p>
+    <?php if (empty($loja['chavePix']) || empty($loja['recebedorPix'])): ?>
+      <p class="alerta">Configure a chave e o titular bancário na <a href="?aba=pix">seção Pix</a> para liberar a entrada no site.</p>
     <?php endif; ?>
     <section class="painel">
       <h2>Atividade do painel</h2>
@@ -234,8 +234,10 @@ if ($autenticado) {
           <p class="muted">JPEG, PNG ou WebP de até 8 MB.</p>
           <?php if ($produto): ?><img class="foto-edicao" src="<?= h('../'.fotoUrl($produto['foto'],'400')) ?>" alt="<?= h($produto['nome']) ?>"><?php endif; ?>
           <label class="check"><input type="checkbox" name="publicado" <?= ($produto['publicado']??true)?'checked':'' ?>> Publicado no catálogo</label>
-          <button class="botao principal">Salvar produto</button>
-          <?php if ($produto): ?><a href="?aba=produtos" class="botao contorno">Novo produto</a><?php endif; ?>
+          <div class="acoes-form">
+            <button class="botao principal">Salvar produto</button>
+            <?php if ($produto): ?><a href="?aba=produtos" class="botao contorno">Novo produto</a><?php endif; ?>
+          </div>
         </form>
         <?php if ($produto): ?>
           <details class="risco"><summary>Excluir produto</summary><p>Pedidos já registrados conservam a descrição e o preço originais.</p>
@@ -272,7 +274,7 @@ if ($autenticado) {
   <?php elseif ($aba==='pix'): ?>
     <h1>Pix</h1>
     <section class="painel estreito">
-      <p>A chave aparece na consulta privada depois que você confirma o pedido. Ao trocar a chave ou o titular, combine o pagamento com os clientes de pedidos já confirmados.</p>
+      <p>A sacola gera o Pix de 50% com esta chave. Confira a entrada no extrato e registre o recebimento em Pedidos. O cliente combina os outros 50% com você na retirada.</p>
       <form method="post" class="formulario">
         <?php formAcao('salvar-pix'); ?>
         <label>Chave Pix por telefone <input type="tel" name="pix" maxlength="20" value="<?= h($loja['chavePix']) ?>"></label>
@@ -321,9 +323,9 @@ if ($autenticado) {
             <li><span><?= h($i['quantidade'].'× '.$i['nome'].($i['modelo']?' · '.$i['modelo']:'')) ?> <small><?= h($i['id']) ?></small></span><strong><?= h(brl($i['subtotal'])) ?></strong></li>
           <?php endforeach; ?>
         </ul>
-        <dl class="totais"><div><dt>Total dos produtos</dt><dd><?= h(brl($pedido['total'])) ?></dd></div><div><dt>Sinal</dt><dd><?= h(brl($pedido['sinal'])) ?></dd></div><div><dt>Restante</dt><dd><?= h(brl($pedido['restante'])) ?></dd></div></dl>
+        <dl class="totais"><div><dt>Total dos produtos</dt><dd><?= h(brl($pedido['total'])) ?></dd></div><div><dt>Entrada</dt><dd><?= h(brl($pedido['sinal'])) ?></dd></div><div><dt>Na retirada</dt><dd><?= h(brl($pedido['restante'])) ?></dd></div></dl>
         <?php if ($pedido['estado']==='solicitado'): ?>
-          <p class="muted">Combine a data e a entrega pelo WhatsApp. Ao confirmar, o Pix de entrada fica disponível para o cliente.</p>
+          <p class="muted">Este pedido foi feito no fluxo anterior. Confirme para disponibilizar o Pix de entrada.</p>
           <form method="post" class="linha-form"><?php formAcao('alterar-pedido'); ?><input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>"><button class="botao principal" name="modo" value="confirmar">Confirmar pedido</button><button class="botao contorno" name="modo" value="cancelar">Cancelar pedido</button></form>
         <?php endif; ?>
         <?php if ($pedido['pago']): ?>
@@ -336,8 +338,12 @@ if ($autenticado) {
         <?php endif; ?>
         <?php if (in_array($pedido['estado'],['confirmado','sinal_recebido'],true)): ?>
           <?php $entradaPendente = $pedido['estado']==='confirmado'; ?>
+          <p class="muted"><?= $entradaPendente?'A encomenda aguarda a entrada. Confira o crédito antes de registrar o pagamento.':'Combine o pagamento dos outros 50% com o cliente na retirada. Após receber, você pode registrar o saldo aqui.' ?></p>
+          <?php if ($entradaPendente && $pedido['confirmado'] === null && (int)$pedido['criado'] < time()-PRAZO_PEDIDO): ?>
+            <p class="muted">O prazo para abrir o Pix no site passou. Se houve crédito no banco, confira e registre a entrada abaixo. Sem esse registro, a manutenção exclui o pedido sete dias após a criação.</p>
+          <?php endif; ?>
           <details class="risco"><summary><?= $entradaPendente?'Registrar entrada':'Registrar saldo' ?></summary>
-            <?php if ($pedido['pix']): ?><p class="muted">Referência da cobrança <?= h(referenciaCobrancaPix($pedido['codigo'],$entradaPendente?'entrada':'saldo')) ?></p><?php endif; ?>
+            <?php if ($entradaPendente && $pedido['pix']): ?><p class="muted">Referência da cobrança <?= h(referenciaCobrancaPix($pedido['codigo'],'entrada')) ?></p><?php endif; ?>
             <form method="post" class="formulario">
               <?php formAcao('alterar-pedido'); ?>
               <input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>">
@@ -348,14 +354,14 @@ if ($autenticado) {
               <button class="botao principal" name="modo" value="<?= $entradaPendente?'receber':'receber-saldo' ?>"><?= $entradaPendente?'Confirmar entrada recebida':'Confirmar saldo recebido' ?></button>
             </form>
           </details>
-          <?php if (!$pedido['pix'] && !empty($loja['chavePix']) && !empty($loja['recebedorPix'])): ?>
+          <?php if ($entradaPendente && ($pedido['confirmado'] !== null || (int)$pedido['criado'] >= time()-PRAZO_PEDIDO) && !$pedido['pix'] && !empty($loja['chavePix']) && !empty($loja['recebedorPix'])): ?>
             <form method="post" class="linha-form"><?php formAcao('alterar-pedido'); ?><input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>"><button class="botao contorno" name="modo" value="reativar-pix">Liberar Pix atualizado</button></form>
           <?php endif; ?>
           <?php if ($entradaPendente): ?>
             <form method="post" class="linha-form"><?php formAcao('alterar-pedido'); ?><input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>"><button class="botao contorno" name="modo" value="cancelar">Cancelar pedido</button></form>
           <?php else: ?>
             <details class="risco"><summary>Cancelar pedido</summary>
-              <p>O Pix do saldo sai da consulta. Se houver reembolso, faça-o pelo banco.</p>
+              <p>Se houver reembolso, faça-o pelo banco.</p>
               <form method="post" class="formulario">
                 <?php formAcao('alterar-pedido'); ?><input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>">
                 <label class="check"><input type="checkbox" name="confirmar_cancelamento" required> Confirmo o cancelamento após receber a entrada</label>

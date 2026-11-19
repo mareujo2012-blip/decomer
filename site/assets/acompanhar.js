@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { dinheiro, linkWhatsApp, linkPedido, requisitar } = window.PedidoDeComer;
+  const { dinheiro, linkWhatsApp, requisitar } = window.PedidoDeComer;
   const el = id => document.getElementById(id);
   const chave = 'decomer-pedido-v1:' + new URL('./', location.href).pathname;
   const tokenValido = token => typeof token === 'string' && /^[a-f0-9]{32}(?:[a-f0-9]{16})?$/.test(token);
@@ -15,9 +15,9 @@
   const parcelas = [...document.querySelectorAll('[data-parcela]')];
   const estadoPedido = {
     solicitado: ['Aguardando confirmação', 'Combine a data e a disponibilidade com a loja. O Pix da entrada aparece aqui depois da confirmação.'],
-    confirmado: ['Pague a entrada', 'A loja confirmou a encomenda.'],
-    sinal_recebido: ['Pague o saldo', 'A loja confirmou a entrada. Pague o restante na data combinada para a retirada ou o envio.'],
-    quitado: ['Pagamento completo', 'A loja confirmou as duas parcelas. Siga o combinado para retirar ou receber a encomenda.'],
+    confirmado: ['Pague 50% agora', 'Este Pix cobre apenas a entrada. A loja confirma a encomenda após conferir o pagamento.'],
+    sinal_recebido: ['Entrada confirmada', 'A loja conferiu o pagamento da entrada. Combine a retirada pelo WhatsApp.'],
+    quitado: ['Pagamento completo', 'A loja confirmou o pagamento completo. Siga o combinado para retirar ou receber a encomenda.'],
     cancelado: ['Pedido cancelado', 'Fale com a loja se tiver alguma dúvida sobre este pedido.'],
   };
   let acesso = null;
@@ -87,22 +87,19 @@
   }
 
   function pixAtual(p) {
-    if (p?.estado === 'confirmado') return p.pix_entrada;
-    if (p?.estado === 'sinal_recebido') return p.pix_saldo;
-    return undefined;
+    return p?.estado === 'confirmado' ? p.pix_entrada : undefined;
   }
 
   function estadoParcela(p, entrada, valor) {
     if (p.estado === 'cancelado') return 'Cancelada';
     if (valor === 0) return 'Sem valor a pagar';
     if (p.estado === 'quitado' || (entrada && p.estado === 'sinal_recebido')) return 'Pago';
-    if (entrada && p.estado === 'solicitado') return 'Após confirmação do pedido';
-    if (!entrada && ['solicitado', 'confirmado'].includes(p.estado)) return 'Após confirmação da entrada';
-    return pixAtual(p) ? 'Disponível para pagar' : 'Consulte a loja';
+    if (!entrada) return 'Acerte com a loja na retirada';
+    return pixAtual(p) ? 'Pague com Pix' : 'Consulte a loja';
   }
 
   function renderizar(p) {
-    const estadoAnterior = ultimo?.estado;
+    const estadoMudou = ultimo?.estado !== p.estado || ultimo?.entrada_expirada !== p.entrada_expirada;
     if (ultimo?.codigo !== p.codigo && Array.isArray(p.itens)) {
       const itens = p.itens.map(item => {
         const linha = document.createElement('li');
@@ -116,34 +113,35 @@
       el('itens-pedido').replaceChildren(...itens);
     }
     const pix = pixAtual(p);
-    if (estadoAnterior !== p.estado || pixTexto.value !== (pix?.copia_cola || '')) limparPix();
+    if (estadoMudou || pixTexto.value !== (pix?.copia_cola || '')) limparPix();
     ultimo = p;
-    const [etapa, orientacao] = estadoPedido[p.estado];
-    el('codigo-pedido').textContent = p.codigo;
-    el('referencia-pedido').hidden = false;
+    const [etapa, orientacao] = p.entrada_expirada
+      ? ['Prazo do Pix encerrado', 'Fale com a loja se você já pagou ou ainda quiser fazer a encomenda.']
+      : estadoPedido[p.estado];
     el('etapa-pedido').textContent = etapa;
-    el('orientacao-pedido').textContent = (!pix && ['confirmado', 'sinal_recebido'].includes(p.estado))
-      ? 'Combine o pagamento desta parcela com a loja.' : orientacao;
-    if (estadoAnterior !== p.estado) el('status-pedido').textContent = etapa;
+    el('orientacao-pedido').textContent = (!pix && p.estado === 'confirmado' && !p.entrada_expirada)
+      ? 'O Pix da entrada está indisponível. Fale com a loja antes de pagar.' : orientacao;
+    if (estadoMudou) el('status-pedido').textContent = etapa;
     el('pedido-total').textContent = dinheiro(p.total);
     for (const parcela of parcelas) {
       const entrada = parcela.dataset.parcela === 'entrada';
       const valor = entrada ? p.sinal : p.restante;
       parcela.querySelector('dd').textContent = dinheiro(valor);
       parcela.querySelector('small').textContent = estadoParcela(p, entrada, valor);
-      parcela.classList.toggle('parcela-disponivel', !!pix && (entrada ? p.estado === 'confirmado' : p.estado === 'sinal_recebido'));
+      parcela.classList.toggle('parcela-disponivel', entrada && !!pix);
     }
-    const whats = el('whatsapp-loja');
-    const texto = p.estado === 'solicitado'
-      ? 'Olá! Quero combinar a disponibilidade e a data da encomenda ' + p.codigo + '.'
-      : 'Olá! Preciso de ajuda com a encomenda ' + p.codigo + '.';
-    whats.href = linkWhatsApp(p.whatsapp, texto);
-    whats.textContent = p.estado === 'solicitado' ? 'Combinar pelo WhatsApp' : 'Falar com a loja';
-    whats.className = pix || p.estado !== 'solicitado' ? 'acao-secundaria' : 'botao botao-verde';
-    whats.hidden = false;
+    const encerrado = p.estado === 'quitado' || p.estado === 'cancelado';
+    const lembrete = el('lembrete-saldo');
+    lembrete.hidden = encerrado || p.restante === 0;
+    lembrete.textContent = 'Os outros 50% (' + dinheiro(p.restante) + ') são pagos à loja na retirada.';
+    const texto = encerrado || p.entrada_expirada
+      ? 'Olá! Preciso de ajuda com a encomenda ' + p.codigo + '.'
+      : 'Olá! Quero combinar a retirada da encomenda ' + p.codigo + '.';
+    el('whatsapp-loja').href = linkWhatsApp(p.whatsapp, texto);
+    atualizar.hidden = !pix;
     if (pix) {
       el('pix-titular').textContent = pix.recebedor;
-      el('valor-pix').textContent = dinheiro(p.estado === 'confirmado' ? p.sinal : p.restante);
+      el('valor-pix').textContent = dinheiro(p.sinal);
       el('valor-pix').hidden = false;
       if (pixTexto.value !== pix.copia_cola) {
         pixTexto.value = pix.copia_cola;
@@ -151,7 +149,6 @@
       }
       el('pagamento-ativo').hidden = false;
     }
-    el('codigo-retorno').textContent = acesso.toUpperCase().match(/.{1,8}/g).join('-');
     detalhe.hidden = false;
     recuperacao.hidden = true;
     repetir.hidden = true;
@@ -162,7 +159,7 @@
     limparPix();
     ultimo = null;
     el('itens-pedido').replaceChildren();
-    detalhe.hidden = el('referencia-pedido').hidden = true;
+    detalhe.hidden = true;
     recuperacao.hidden = false;
     repetir.hidden = true;
     aviso(texto);
@@ -186,7 +183,7 @@
         if (erro.status === 429) proximaConsulta = Date.now() + (erro.tentarEm || 60) * 1000;
         limparPix();
         aviso(erro.status ? erro.message : 'Não foi possível atualizar a situação. Tente novamente.');
-        repetir.hidden = !detalhe.hidden;
+        repetir.hidden = false;
       }
       return null;
     }
@@ -213,66 +210,14 @@
     if (guardarToken(token)) limparFragmento();
     mostrarConsulta();
     recuperacao.hidden = true;
-    el('link-texto').value = el('acesso-feedback').textContent = '';
-    el('link-manual').hidden = true;
     el('status-pedido').textContent = 'Consultando pedido…';
     if (Date.now() < proximaConsulta) {
       aviso('Aguarde alguns minutos antes de consultar de novo.');
       repetir.hidden = false;
       return;
     }
-    const pedido = await consultarAtual();
-    if (pedido && document.activeElement?.closest('#recuperar-pedido')) el('etapa-pedido').focus();
+    await consultarAtual();
   }
-
-  async function copiar(texto, feedback, mensagem, campo, painel) {
-    try {
-      await navigator.clipboard.writeText(texto);
-      feedback.textContent = mensagem;
-    } catch {
-      if (painel) painel.hidden = false;
-      if (campo instanceof HTMLInputElement) {
-        campo.value = texto;
-        campo.focus();
-        campo.select();
-      } else {
-        const selecao = window.getSelection();
-        const intervalo = document.createRange();
-        intervalo.selectNodeContents(campo);
-        selecao.removeAllRanges();
-        selecao.addRange(intervalo);
-      }
-      feedback.textContent = 'Use a opção de copiar do seu aparelho.';
-    }
-  }
-
-  el('form-consulta').addEventListener('submit', async evento => {
-    evento.preventDefault();
-    const campo = el('codigo-acesso');
-    const token = campo.value.trim().replace(/[\s-]/g, '').toLowerCase();
-    const erro = el('codigo-erro');
-    erro.hidden = tokenValido(token);
-    if (!erro.hidden) {
-      erro.textContent = 'Cole o código de acesso que você guardou.';
-      campo.setAttribute('aria-invalid', 'true');
-      campo.focus();
-      return;
-    }
-    campo.removeAttribute('aria-invalid');
-    const botao = evento.currentTarget.querySelector('button');
-    botao.disabled = true;
-    try {
-      await abrir(token);
-      if (!detalhe.hidden) campo.value = '';
-    } finally {
-      botao.disabled = false;
-    }
-  });
-
-  el('codigo-acesso').addEventListener('input', evento => {
-    evento.currentTarget.removeAttribute('aria-invalid');
-    el('codigo-erro').hidden = true;
-  });
 
   atualizar.addEventListener('click', async () => {
     if (await consultarAtual()) el('status-pedido').textContent = 'Situação do pedido atualizada.';
@@ -287,12 +232,12 @@
     if (!token || !texto || copiando) return;
     copiando = true;
     const feedback = el('pix-feedback');
-    feedback.textContent = 'Conferindo a parcela…';
+    feedback.textContent = 'Conferindo o Pix da entrada…';
     const valido = consultarAtual().then(p => acesso === token && pixAtual(p)?.copia_cola === texto);
     try {
       if (typeof ClipboardItem === 'function' && navigator.clipboard?.write) {
         const conteudo = valido.then(ok => {
-          if (!ok) throw new Error('A parcela mudou.');
+          if (!ok) throw new Error('O Pix da entrada mudou.');
           return new Blob([texto], { type: 'text/plain' });
         });
         conteudo.catch(() => {});
@@ -305,32 +250,21 @@
         }
       }
       if (await valido && acesso === token && pixTexto.value === texto) {
-        await copiar(texto, feedback, 'Pix copiado. Agora, cole no app do seu banco.', pixTexto, el('pix-manual'));
+        try {
+          await navigator.clipboard.writeText(texto);
+          feedback.textContent = 'Pix copiado. Agora, cole no app do seu banco.';
+        } catch {
+          el('pix-manual').hidden = false;
+          pixTexto.focus();
+          pixTexto.select();
+          feedback.textContent = 'Use a opção de copiar do seu aparelho.';
+        }
       } else if (acesso === token && pixTexto.value) {
-        feedback.textContent = 'A parcela mudou. Confira a situação e copie o Pix disponível.';
+        feedback.textContent = 'O Pix da entrada mudou. Confira o valor e tente copiar novamente.';
       }
     } finally {
       copiando = false;
     }
-  });
-
-  el('copiar-link').addEventListener('click', () => {
-    if (acesso) copiar(linkPedido(acesso), el('acesso-feedback'), 'Link copiado. Guarde onde você possa encontrá-lo.', el('link-texto'), el('link-manual'));
-  });
-  el('copiar-codigo').addEventListener('click', () => {
-    const codigo = el('codigo-retorno');
-    if (acesso) copiar(codigo.textContent, el('acesso-feedback'), 'Código de acesso copiado.', codigo);
-  });
-  el('encerrar-consulta').addEventListener('click', () => {
-    acesso = null;
-    guardarToken(null);
-    limparFragmento();
-    el('codigo-retorno').textContent = el('codigo-pedido').textContent = '';
-    el('link-texto').value = el('acesso-feedback').textContent = '';
-    el('link-manual').hidden = true;
-    el('guardar-titulo').parentElement.querySelector('details').open = false;
-    mostrarConsulta();
-    el('codigo-acesso').focus();
   });
 
   function iniciar() {
@@ -345,7 +279,7 @@
         guardarToken(null);
         limparFragmento();
       }
-      mostrarConsulta(peloLink ? 'Link de acesso inválido. Use o código que você guardou.' : '');
+      mostrarConsulta(peloLink ? 'Não foi possível abrir esta encomenda. Fale com a loja se precisar de ajuda.' : '');
     }
   }
 

@@ -24,7 +24,7 @@ A régua da avaliação original descontava 20 pontos por achado crítico, 10 po
 | Exposição e transporte | Verificado localmente | HTTPS, HSTS, CSP, bloqueio de arquivos legados, credenciais fora da pasta pública e verificação de permissões. Ativação e extensões do hPanel ainda precisam de conferência. `site/bootstrap.php`, `site/.htaccess` |
 | Privacidade e retenção | Controle implementado | Nome opcional, token na sessão do navegador e manutenção agendada de registros. A programação do cron é feita na hospedagem. |
 | Disponibilidade | Risco residual | Limites por rede, para a conta administrativa e para a criação global de pedidos. Um volume distribuído pode esgotar uma cota temporariamente. |
-| Liquidação Pix | Conferência manual | O painel registra a confirmação feita pela Josiane após consultar o banco. A verificação do extrato é parte do atendimento. |
+| Liquidação Pix | Conferência manual | O painel registra a confirmação feita pela Jozyanne após consultar o banco. A verificação do extrato é parte do atendimento. |
 
 ## 2. Achados e correções
 
@@ -34,7 +34,7 @@ Antes, `site/assets/pedido.js:14` e `site/assets/loja.js:205` montavam a cobran�
 
 ### Médio · Pagamento antes da confirmação e reutilização de comprovante
 
-Antes, `site/assets/loja.js:210` copiava a chave da configuração pública. Agora a chave só fica disponível após confirmação, na consulta autorizada pelo token do pedido. A cópia consulta novamente o estado. O painel exige o valor exato do sinal e um identificador de transação único para Pix, preservando a capitalização do ID. A Josiane confere o crédito no extrato antes de registrar. [Banco Central](https://bcb.gov.br/meubc/faqs/p/vitima-fez-um-pix-e-caiu-em-um-golpe)
+Antes, `site/assets/loja.js:210` copiava a chave da configuração pública. Agora a chave só fica disponível após confirmação, na consulta autorizada pelo token do pedido. A cópia consulta novamente o estado. O painel exige o valor exato do sinal e um identificador de transação único para Pix, preservando a capitalização do ID. A Jozyanne confere o crédito no extrato antes de registrar. [Banco Central](https://bcb.gov.br/meubc/faqs/p/vitima-fez-um-pix-e-caiu-em-um-golpe)
 
 ### Médio · Disponibilidade do checkout
 

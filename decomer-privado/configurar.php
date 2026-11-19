@@ -33,7 +33,28 @@ try {
     try {
         if ($modo === '--atualizar') {
             instalarSchema($pdo);
-            transacao($pdo,fn () => $pdo->exec("UPDATE pedidos SET estado='quitado' WHERE estado='sinal_recebido' AND restante=0"));
+            transacao($pdo, function () use ($pdo): void {
+                $pdo->exec("UPDATE pedidos SET estado='quitado' WHERE estado='sinal_recebido' AND restante=0");
+                $loja = estadoLoja($pdo)['loja'];
+                $padrao = json_decode(file_get_contents(__DIR__.'/catalogo-inicial.json'),true,32,JSON_THROW_ON_ERROR)['loja'];
+                $etapasAnteriores = [
+                    'etapa2'=>['Confirme pelo WhatsApp',
+                        'Envie a lista para a Josiane e combine disponibilidade, data e forma de entrega. Os modelos seguem as fotos do catálogo.',
+                        'Informe seu nome e WhatsApp na sacola. Na página do pedido, fale com a loja para combinar a data e a entrega.'],
+                    'etapa3'=>['Pague o sinal de 50%',
+                        'Após a confirmação, pague por Pix ou dinheiro. O restante é pago no dia da entrega.',
+                        'A loja libera o Pix da entrada após confirmar a encomenda. Guarde o link do pedido para voltar e pagar o saldo.'],
+                ];
+                $atualizada = $loja;
+                foreach ($etapasAnteriores as $etapa=>$textos) {
+                    $titulo = array_shift($textos);
+                    if ($loja[$etapa.'Titulo'] === $titulo && in_array($loja[$etapa.'Texto'],$textos,true)) {
+                        $atualizada[$etapa.'Titulo'] = $padrao[$etapa.'Titulo'];
+                        $atualizada[$etapa.'Texto'] = $padrao[$etapa.'Texto'];
+                    }
+                }
+                if ($atualizada !== $loja) consulta($pdo,'UPDATE loja SET configuracao=?, revisao=revisao+1 WHERE id=1',[jsonSeguro($atualizada)]);
+            });
             echo "Estrutura de dados atualizada.\n";
             exit;
         }

@@ -24,11 +24,11 @@ $voltarLoja = './';
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
-  <link rel="stylesheet" href="assets/estilo.css?v=5">
+  <link rel="stylesheet" href="assets/estilo.css?v=7">
   <script src="assets/pedido.js?v=3" defer></script>
   <script src="assets/qrcode-2.0.4.js?v=1" defer></script>
-  <script src="assets/acompanhar.js?v=1" defer></script>
-  <title>Seu pedido | <?= h($loja['marca']) ?></title>
+  <script src="assets/acompanhar.js?v=2" defer></script>
+  <title>Pix da entrada | <?= h($loja['marca']) ?></title>
 </head>
 <body class="pagina-pedido">
   <header class="cabecalho">
@@ -42,23 +42,19 @@ $voltarLoja = './';
   </header>
   <main class="largura tela-pedido">
     <div class="titulo-pedido">
-      <h1>Seu pedido</h1>
-      <p id="referencia-pedido" class="pedido-referencia" hidden>Referência <strong id="codigo-pedido"></strong></p>
+      <h1>Pix da entrada</h1>
     </div>
     <p id="status-pedido" class="so-leitor" role="status"></p>
     <p id="consulta-aviso" class="consulta-aviso" role="alert" hidden></p>
     <button id="consulta-repetir" class="acao-secundaria" type="button" hidden>Tentar novamente</button>
     <noscript><p class="consulta-aviso">Ative o JavaScript para consultar seu pedido e acessar o Pix.</p></noscript>
     <section id="recuperar-pedido" class="painel-pedido recuperar-pedido" hidden>
-      <h2>Consultar pedido</h2>
-      <p>Abra o link privado que você guardou ou cole abaixo o código de acesso.</p>
-      <form id="form-consulta" class="pedido-form" method="post" action="pedidos.php?acao=consultar">
-        <label for="codigo-acesso">Código de acesso</label>
-        <input type="text" id="codigo-acesso" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" aria-describedby="codigo-erro" required>
-        <p id="codigo-erro" class="erro" hidden></p>
-        <button type="submit" class="botao botao-verde">Abrir pedido</button>
-      </form>
-      <a class="link-pedido" href="<?= h($whats) ?>">Preciso de ajuda com meu pedido</a>
+      <h2>Precisa de ajuda?</h2>
+      <p>Abra o Pix da entrada pela sacola ou fale com a loja sobre uma encomenda que você já fez.</p>
+      <div class="acoes-acompanhamento">
+        <a class="botao botao-verde" href="./">Voltar ao catálogo</a>
+        <a class="acao-secundaria" href="<?= h($whats) ?>">Falar com <?= h($loja['responsavel']) ?></a>
+      </div>
     </section>
     <div id="pedido-detalhe" class="detalhe-pedido" hidden>
       <section class="painel-pedido painel-pagamento" aria-labelledby="etapa-pedido">
@@ -67,9 +63,10 @@ $voltarLoja = './';
           <strong id="valor-pix" class="valor-pix" hidden></strong>
         </div>
         <p id="orientacao-pedido" class="orientacao-pedido"></p>
+        <p id="lembrete-saldo" class="lembrete-saldo" hidden></p>
         <div id="pagamento-ativo" class="pagamento-ativo" hidden>
           <div class="quadro-qr">
-            <canvas id="qr-pix" role="img" aria-label="QR Code do Pix da parcela disponível" hidden></canvas>
+            <canvas id="qr-pix" role="img" aria-label="QR Code do Pix da entrada" hidden></canvas>
             <p id="qr-ajuda" hidden>Com outro aparelho, escaneie pelo app do banco.</p>
           </div>
           <div class="pix-instrucoes">
@@ -84,8 +81,8 @@ $voltarLoja = './';
           </div>
         </div>
         <div class="acoes-acompanhamento">
-          <a id="whatsapp-loja" class="botao botao-verde" rel="noreferrer" hidden>Combinar pelo WhatsApp</a>
-          <button id="atualizar-pedido" class="acao-secundaria" type="button">Atualizar situação</button>
+          <a id="whatsapp-loja" class="acao-secundaria" rel="noreferrer">Falar com <?= h($loja['responsavel']) ?> pelo WhatsApp</a>
+          <button id="atualizar-pedido" class="acao-secundaria" type="button" hidden>Verificar se a loja confirmou</button>
         </div>
       </section>
       <div class="lado-pedido">
@@ -94,29 +91,12 @@ $voltarLoja = './';
           <dl>
             <div class="parcela-total"><dt>Total dos produtos</dt><dd id="pedido-total"></dd></div>
             <div class="parcela-linha" data-parcela="entrada"><dt>Entrada · 50%<small></small></dt><dd></dd></div>
-            <div class="parcela-linha" data-parcela="saldo"><dt>Saldo · 50%<small></small></dt><dd></dd></div>
+            <div class="parcela-linha" data-parcela="saldo"><dt>Na retirada · 50%<small></small></dt><dd></dd></div>
           </dl>
           <details>
             <summary>Ver itens da encomenda</summary>
             <ul id="itens-pedido"></ul>
           </details>
-        </section>
-        <section class="painel-pedido guardar-acesso" aria-labelledby="guardar-titulo">
-          <h2 id="guardar-titulo">Guarde seu link</h2>
-          <p>Salve o link nas suas notas ou na sua conversa com a loja. Use o mesmo link para voltar ao pedido e pagar o saldo.</p>
-          <button class="acao-secundaria" type="button" id="copiar-link">Copiar link privado</button>
-          <div id="link-manual" class="pix-manual" hidden>
-            <label for="link-texto">Link privado do pedido</label>
-            <input id="link-texto" type="text" readonly autocomplete="off">
-          </div>
-          <details>
-            <summary>Ver código de acesso</summary>
-            <p>Você também pode colar este código em <strong>Consultar pedido</strong>.</p>
-            <code id="codigo-retorno"></code>
-            <button class="acao-secundaria" type="button" id="copiar-codigo">Copiar código de acesso</button>
-          </details>
-          <p id="acesso-feedback" class="feedback-pedido" role="status"></p>
-          <button id="encerrar-consulta" class="link-pedido" type="button">Encerrar consulta neste aparelho</button>
         </section>
       </div>
     </div>

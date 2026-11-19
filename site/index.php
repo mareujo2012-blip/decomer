@@ -39,9 +39,9 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
   <meta property="og:locale" content="pt_BR">
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
   <link rel="preload" href="assets/amatic-sc-bold.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="assets/estilo.css?v=5">
+  <link rel="stylesheet" href="assets/estilo.css?v=7">
   <script src="assets/pedido.js?v=3" defer></script>
-  <script src="assets/loja.js?v=4" defer></script>
+  <script src="assets/loja.js?v=5" defer></script>
   <script src="assets/iniciar.js" defer></script>
   <title><?= h($titulo.' | '.$loja['submarca']) ?></title>
 </head>
@@ -74,7 +74,6 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
           <p><?= h($loja['chamada']) ?></p>
           <div class="abertura-acoes">
             <a class="botao botao-vinho abertura-cta" href="#catalogo">Escolher biscoitos <span aria-hidden="true">↘</span></a>
-            <a class="abertura-ajuda" href="acompanhar.php">Consultar pedido</a>
           </div>
         </div>
         <div class="abertura-fotos">
@@ -162,10 +161,10 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
         <div class="pedido-resumo">
           <dl>
             <div class="pedido-total"><dt>Total dos produtos</dt><dd id="total"></dd></div>
-            <div><dt>Sinal de 50%</dt><dd id="sinal"></dd></div>
-            <div><dt>Restante na entrega</dt><dd id="restante"></dd></div>
+            <div><dt>Entrada agora · 50%</dt><dd id="sinal"></dd></div>
+            <div><dt>Na retirada · 50%</dt><dd id="restante"></dd></div>
           </dl>
-          <p>Você recebe o acesso ao pedido agora. O Pix da entrada aparece depois que a loja confirmar a disponibilidade.</p>
+          <p>O Pix é só da entrada. Combine a retirada e o pagamento do restante com a loja.</p>
         </div>
         <form id="pedido" class="pedido-form" method="post" action="pedidos.php?acao=criar">
           <label for="comprador">Seu nome</label>
@@ -179,11 +178,10 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
             <a href="condicoes-de-compra.php" target="_blank" rel="noopener">Condições de Compra<span class="so-leitor"> (nova aba)</span></a>
             <a href="privacidade.php" target="_blank" rel="noopener">Política de Privacidade<span class="so-leitor"> (nova aba)</span></a>
           </nav>
-          <button type="submit" class="botao botao-verde botao-whatsapp" disabled>Solicitar encomenda</button>
+          <button type="submit" class="botao botao-verde botao-whatsapp" disabled>Ver Pix da entrada</button>
         </form>
         <p id="erro-pedido" class="erro" role="alert" hidden></p>
       </div>
-      <p class="sacola-consulta"><a href="acompanhar.php">Já tem um pedido? Consulte aqui</a></p>
     </div>
   </dialog>
 

@@ -587,7 +587,10 @@ function alterarPedido(PDO $pdo): void
             evento($pdo,'Registrou o recebimento do saldo',$id);
             return;
         }
-        if ($acao === 'reativar-pix' && in_array($pedido['estado'],['confirmado','sinal_recebido'],true) && !$pedido['pix']) {
+        if ($acao === 'reativar-pix' && $pedido['estado'] === 'confirmado' && !$pedido['pix']) {
+            if ($pedido['confirmado'] === null && $pedido['criado'] < $agora-PRAZO_PEDIDO) {
+                throw new Falha(409,'O prazo para abrir este Pix no site passou. Se houve crédito, registre a entrada.');
+            }
             $loja = estadoLoja($pdo)['loja'];
             if (empty($loja['chavePix']) || empty($loja['recebedorPix'])) throw new Falha(422,'Configure a chave e o titular na seção Pix.');
             consulta($pdo,'UPDATE pedidos SET pix=?, recebedor=? WHERE codigo=?',[$loja['chavePix'],$loja['recebedorPix'],$id]);

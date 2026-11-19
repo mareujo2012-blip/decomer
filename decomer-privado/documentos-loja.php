@@ -33,7 +33,7 @@ $voltarLoja = './';
   <meta name="theme-color" content="#f9f3e8">
   <title><?= h($titulo.' | '.$loja['marca']) ?></title>
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
-  <link rel="stylesheet" href="assets/estilo.css?v=3">
+  <link rel="stylesheet" href="assets/estilo.css?v=7">
 </head>
 <body class="documento">
   <a class="pular" href="#conteudo">Pular para o conteúdo</a>
@@ -67,7 +67,7 @@ $voltarLoja = './';
         <section id="dados">
           <h2>Dados do pedido</h2>
           <p>A <?= h($loja['razaoSocial'] ?: $loja['marca']) ?> é responsável pelo uso dos dados desta loja. Ao gerar um pedido, o site registra os itens, as quantidades, os valores, a data, o código, o nome e o WhatsApp do comprador. Usamos esses dados para atender à sua solicitação, acompanhar a encomenda e conferir o pagamento.</p>
-          <p>Ao combinar a entrega pelo WhatsApp, você pode precisar informar um endereço ou outros dados de contato. A loja registra as referências dos pagamentos Pix após conferir a entrada e o saldo no extrato. Guarde o link privado ou o código de acesso para consultar o pedido em outro navegador.</p>
+          <p>Ao combinar a entrega pelo WhatsApp, você pode precisar informar um endereço ou outros dados de contato. A loja registra as referências dos pagamentos que confere no extrato.</p>
         </section>
         <section id="compartilhamento">
           <h2>Serviços externos</h2>
@@ -76,14 +76,14 @@ $voltarLoja = './';
         </section>
         <section id="retencao">
           <h2>Prazos de guarda</h2>
-          <p>Na rotina de manutenção, pedidos que aguardam confirmação há mais de sete dias são excluídos e o nome e o WhatsApp são removidos dos registros após 90 dias. A consulta fica disponível por até 90 dias e expira em 24 horas para pedidos ainda aguardando confirmação.</p>
+          <p>Na rotina de manutenção, pedidos sem entrada registrada pela loja são excluídos sete dias após a criação. O nome e o WhatsApp são removidos dos registros após 90 dias.</p>
           <p>Os demais registros do pedido e do pagamento podem ser mantidos para atender à encomenda, cumprir obrigações legais ou exercer direitos. Os prazos automáticos acima se aplicam ao sistema da loja. As mensagens enviadas pelo WhatsApp são tratadas separadamente.</p>
         </section>
         <section id="cookies">
           <h2>Cookies e armazenamento</h2>
           <ul>
             <li><strong>Sacola.</strong> O site guarda os produtos e as quantidades no armazenamento local do navegador. Você pode remover os itens da sacola ou limpar os dados deste site no navegador.</li>
-            <li><strong>Consulta do pedido.</strong> O código de acesso fica na sessão da aba. Use <em>Encerrar consulta neste aparelho</em> para removê-lo da sessão. Quem tem o link privado ou o código pode consultar o pedido e acessar o Pix disponível.</li>
+            <li><strong>Tela do Pix.</strong> O site usa um identificador privado na sessão da aba para preservar o pedido se você recarregar a página.</li>
             <li><strong>Painel da loja.</strong> Um cookie de sessão mantém o acesso da administração após o login.</li>
           </ul>
           <p>A vitrine usa esse armazenamento para operar a sacola e a consulta. Os links do WhatsApp e do Instagram levam a serviços com políticas próprias.</p>
@@ -96,13 +96,13 @@ $voltarLoja = './';
       <?php else: ?>
         <section id="pedido">
           <h2>Como encomendar</h2>
-          <p>Escolha os modelos e as quantidades no catálogo. Revise a sacola, preencha seu nome e WhatsApp e solicite a encomenda. Na página do pedido, use <em>Combinar pelo WhatsApp</em> para falar com a loja. Aguarde a loja confirmar a disponibilidade, o total com eventuais despesas de entrega e o prazo antes de pagar o sinal.</p>
+          <p>Escolha os modelos e as quantidades no catálogo. Revise a sacola, preencha seu nome e WhatsApp e toque em <em>Ver Pix da entrada</em>. A loja confirma a encomenda após conferir o pagamento. Fale com a loja pelo WhatsApp para combinar a retirada. Se precisar de envio, confirme disponibilidade, frete e prazo com a loja antes de pagar.</p>
           <p>Os modelos seguem as fotos do catálogo. A loja recebe encomendas até a data anunciada ou até atingir a capacidade de produção. Consulte as informações sobre ingredientes e alergênicos <a href="./#massa">na seção Sobre a massa</a> antes de encomendar.</p>
         </section>
         <section id="pagamento">
           <h2>Pagamento</h2>
-          <p>Após a confirmação da loja, pague 50% do valor dos produtos como sinal, por Pix ou dinheiro. O saldo é pago no dia da entrega. Confira com o atendimento o valor do frete e como ele será cobrado.</p>
-          <p>Para pagar por Pix, use o QR Code da parcela disponível ou copie o código para o app do banco. O Pix da entrada aparece depois que a loja confirma a encomenda. O saldo fica disponível quando a loja confere o recebimento da entrada. Guarde o link privado para reabrir a página do pedido. Você também pode colar o código de acesso em <em>Consultar pedido</em>. Use o Pix exibido na consulta atual, pois um QR salvo em outro lugar pode continuar funcionando. Antes de pagar, confira o titular e o valor no app do banco.</p>
+          <p>O Pix da sacola cobra a entrada de 50% do valor dos produtos. Os outros 50% são pagos diretamente à loja na retirada. Se houver envio, combine o pagamento e o frete com a loja.</p>
+          <p>Use o QR Code ou o código Pix da tela da encomenda em até 24 horas. Confira o valor e o titular no app do banco antes de pagar. Se esse prazo passar ou se você já tiver pago, fale com a loja. A loja confirma a entrada após conferir o crédito no extrato.</p>
         </section>
         <section id="entrega">
           <h2>Retirada e envio</h2>

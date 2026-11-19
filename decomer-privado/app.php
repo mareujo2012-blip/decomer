@@ -311,17 +311,19 @@ function pedidoPublico(array $pedido): array
     $data = ['codigo'=>$pedido['codigo'], 'estado'=>$pedido['estado'], 'total'=>(int)$pedido['total'],
         'sinal'=>(int)$pedido['sinal'], 'restante'=>(int)$pedido['restante'], 'whatsapp'=>$pedido['whatsapp']];
     if ($pedido['estado'] === 'confirmado' && $pedido['pix']) {
-        $data['pix'] = $pedido['pix'];
-        $data['recebedor'] = $pedido['recebedor'];
+        if ($pedido['confirmado'] === null && (int)$pedido['criado'] < time() - PRAZO_PEDIDO) {
+            $data['entrada_expirada'] = true;
+            return $data;
+        }
         $data['pix_entrada'] = cobrancaPix($pedido,'entrada');
     }
-    if ($pedido['estado'] === 'sinal_recebido') $data['pix_saldo'] = cobrancaPix($pedido,'saldo');
     return $data;
 }
 
 function limparPedidosAntigos(PDO $pdo, int $agora): void
 {
-    consulta($pdo, "DELETE FROM pedidos WHERE estado='solicitado' AND criado < ?", [$agora - 7*86400]);
+    // Pendente = sem entrada registrada: o legado 'solicitado' e o 'confirmado' aberto pela sacola sem confirmação manual.
+    consulta($pdo, "DELETE FROM pedidos WHERE criado < ? AND (estado='solicitado' OR (estado='confirmado' AND confirmado IS NULL AND pago IS NULL))", [$agora - 7*86400]);
     consulta($pdo, 'DELETE c FROM contatos_pedidos c JOIN pedidos p ON p.codigo=c.codigo WHERE p.criado < ?', [$agora - 90*86400]);
     consulta($pdo, "UPDATE pedidos SET nome='', assinatura='' WHERE (nome<>'' OR assinatura<>'') AND criado < ?", [$agora - 90*86400]);
 }
@@ -374,12 +376,17 @@ function novoPedido(PDO $pdo, stdClass $dados): array
             throw new Falha(409, 'A loja está com encomendas pausadas. Consulte o atendimento.');
         }
         if ($dados->revisao !== $config['revisao']) throw new Falha(409, 'O catálogo foi atualizado. Recarregue a página e revise os valores.');
+        $pix = trim($config['loja']['chavePix'] ?? '');
+        $recebedor = trim($config['loja']['recebedorPix'] ?? '');
+        if (preg_match('/\A\+55[1-9][0-9]9[0-9]{8}\z/D',$pix) !== 1 || $recebedor === '') {
+            throw new Falha(503, 'O Pix está temporariamente indisponível. Fale com a loja pelo WhatsApp.');
+        }
         $p = calcularPedido($itens, produtos($pdo));
         limites($pdo,[['pedidos:global',350,600]]);
         $codigo = 'DC-'.strtoupper(bin2hex(random_bytes(12)));
         $whatsapp = $config['loja']['whatsapp'];
-        consulta($pdo,'INSERT INTO pedidos (codigo,criado,revisao,nome,itens,total,sinal,restante,whatsapp,consulta,assinatura) VALUES (?,?,?,?,?,?,?,?,?,?,?)',[
-            $codigo, $agora, $config['revisao'], $nome, jsonSeguro($p['itens']), $p['total'], $p['sinal'], $p['restante'], $whatsapp, $chave, $assinatura,
+        consulta($pdo,"INSERT INTO pedidos (codigo,criado,revisao,nome,itens,total,sinal,restante,whatsapp,consulta,assinatura,estado,pix,recebedor) VALUES (?,?,?,?,?,?,?,?,?,?,?,'confirmado',?,?)",[
+            $codigo, $agora, $config['revisao'], $nome, jsonSeguro($p['itens']), $p['total'], $p['sinal'], $p['restante'], $whatsapp, $chave, $assinatura, $pix, $recebedor,
         ]);
         consulta($pdo,'INSERT INTO contatos_pedidos (codigo,telefone) VALUES (?,?)',[$codigo,$telefone]);
         return $p + ['codigo'=>$codigo, 'whatsapp'=>$whatsapp];
@@ -410,7 +417,7 @@ function consultarPedido(PDO $pdo, stdClass $dados): array
 {
     $codigo = $dados->codigo ?? null;
     $token = $dados->token ?? null;
-    $mensagem = 'Pedido não encontrado. Confira o código de acesso.';
+    $mensagem = 'Pedido não encontrado. Fale com a loja se precisar de ajuda.';
     if (!is_string($token) || !tokenPedidoValido($token)
         || ($codigo !== null && (!is_string($codigo) || preg_match('/\ADC-[A-F0-9]{24}\z/D',$codigo) !== 1))) {
         throw new Falha(404,$mensagem);

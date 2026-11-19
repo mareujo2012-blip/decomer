@@ -220,14 +220,14 @@
         nome.value = telefone.value = '';
         tentativa = null;
         enviando = false;
-        confirmar.textContent = 'Solicitar encomenda';
+        confirmar.textContent = 'Ver Pix da entrada';
         atualizarSacola();
         sacola.close();
         location.assign(linkPedido(requisicao));
       } catch (erro) {
         mostrarErro(erro.status ? erro.message : 'Não foi possível enviar o pedido. Tente novamente.');
         enviando = false;
-        confirmar.textContent = 'Solicitar encomenda';
+        confirmar.textContent = 'Ver Pix da entrada';
         atualizarSacola();
       }
     });
