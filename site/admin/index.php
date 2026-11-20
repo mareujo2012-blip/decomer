@@ -178,7 +178,7 @@ if ($autenticado) {
   <meta name="robots" content="noindex, nofollow, noarchive">
   <title><?= h($autenticado ? $abas[$aba].' | '.$loja['marca'] : 'Administração | De Comer') ?></title>
   <link rel="icon" href="../assets/img/icone.png">
-  <link rel="stylesheet" href="../assets/painel.css?v=4">
+  <link rel="stylesheet" href="../assets/painel.css?v=5">
 </head>
 <body class="<?= $autenticado?'painel-autenticado':'painel-login' ?>">
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
@@ -304,7 +304,7 @@ if ($autenticado) {
   <?php elseif ($aba==='pix'): ?>
     <h1>Pix</h1>
     <section class="painel estreito">
-      <p>A sacola gera o Pix de 50% com esta chave. Confira a entrada no extrato e registre o recebimento em Pedidos. O cliente combina os outros 50% com você na retirada.</p>
+      <p>O site não gera Pix no momento: o pagamento é combinado com o cliente pelo WhatsApp. Guarde aqui a chave e o titular para consulta. Ao receber, registre o pagamento em Pedidos.</p>
       <form method="post" class="formulario">
         <?php formAcao('salvar-pix'); ?>
         <label>Chave Pix por telefone <input type="tel" name="pix" maxlength="20" value="<?= h($loja['chavePix']) ?>"></label>
@@ -345,10 +345,10 @@ if ($autenticado) {
     <?php endif; ?>
     <?php if ($pedido): ?>
       <section class="painel" id="pedido-detalhe">
-        <h2><?= h($pedido['codigo']) ?></h2>
+        <h2><?= h($pedido['nome'] !== '' ? $pedido['nome'] : 'Cliente sem nome') ?></h2>
         <div class="metadados-pedido">
           <span class="estado-pedido" data-estado="<?= h($pedido['estado']) ?>"><?= h($rotulos[$pedido['estado']]) ?></span>
-          <span><?= h(dataLocal((int)$pedido['criado'])) ?><?= $pedido['nome']!==''?' · '.h($pedido['nome']):'' ?></span>
+          <span><?= h(dataLocal((int)$pedido['criado'])) ?> · <small><?= h($pedido['codigo']) ?></small></span>
         </div>
         <?php if ($pedido['telefone']): ?>
           <?php $mensagemCliente = 'Olá! Aqui é da '.$loja['marca'].'. Estou falando sobre a encomenda '.$pedido['codigo'].'.'; ?>
