@@ -37,22 +37,28 @@ try {
                 $pdo->exec("UPDATE pedidos SET estado='quitado' WHERE estado='sinal_recebido' AND restante=0");
                 $loja = estadoLoja($pdo)['loja'];
                 $padrao = json_decode(file_get_contents(__DIR__.'/catalogo-inicial.json'),true,32,JSON_THROW_ON_ERROR)['loja'];
+                // Só troca textos que ainda sejam padrões de versões anteriores; textos editados no painel ficam.
                 $etapasAnteriores = [
-                    'etapa2'=>['Confirme pelo WhatsApp',
-                        'Envie a lista para a Josiane e combine disponibilidade, data e forma de entrega. Os modelos seguem as fotos do catálogo.',
-                        'Informe seu nome e WhatsApp na sacola. Na página do pedido, fale com a loja para combinar a data e a entrega.'],
-                    'etapa3'=>['Pague o sinal de 50%',
-                        'Após a confirmação, pague por Pix ou dinheiro. O restante é pago no dia da entrega.',
-                        'A loja libera o Pix da entrada após confirmar a encomenda. Guarde o link do pedido para voltar e pagar o saldo.'],
+                    'etapa2'=>[
+                        ['Confirme pelo WhatsApp','Envie a lista para a Josiane e combine disponibilidade, data e forma de entrega. Os modelos seguem as fotos do catálogo.'],
+                        ['Confirme pelo WhatsApp','Informe seu nome e WhatsApp na sacola. Na página do pedido, fale com a loja para combinar a data e a entrega.'],
+                        ['Pague 50% via Pix','Informe seu nome e WhatsApp na sacola e abra o Pix da entrada. A loja confirma a encomenda após conferir o crédito.'],
+                    ],
+                    'etapa3'=>[
+                        ['Pague o sinal de 50%','Após a confirmação, pague por Pix ou dinheiro. O restante é pago no dia da entrega.'],
+                        ['Pague o sinal de 50%','A loja libera o Pix da entrada após confirmar a encomenda. Guarde o link do pedido para voltar e pagar o saldo.'],
+                        ['Acerte o restante na retirada','Combine a retirada pelo WhatsApp e pague diretamente à loja os outros 50% na retirada.'],
+                    ],
                 ];
                 $atualizada = $loja;
-                foreach ($etapasAnteriores as $etapa=>$textos) {
-                    $titulo = array_shift($textos);
-                    if ($loja[$etapa.'Titulo'] === $titulo && in_array($loja[$etapa.'Texto'],$textos,true)) {
+                foreach ($etapasAnteriores as $etapa=>$pares) {
+                    if (in_array([$loja[$etapa.'Titulo'],$loja[$etapa.'Texto']],$pares,true)) {
                         $atualizada[$etapa.'Titulo'] = $padrao[$etapa.'Titulo'];
                         $atualizada[$etapa.'Texto'] = $padrao[$etapa.'Texto'];
                     }
                 }
+                $retiradaAnterior = 'Retire no local combinado. Também é possível solicitar Uber por conta própria ou combinar envio pelos Correios, com frete por conta do cliente. Combine condições de transporte e cancelamento antes de pagar o sinal.';
+                if ($loja['retirada'] === $retiradaAnterior) $atualizada['retirada'] = $padrao['retirada'];
                 if ($atualizada !== $loja) consulta($pdo,'UPDATE loja SET configuracao=?, revisao=revisao+1 WHERE id=1',[jsonSeguro($atualizada)]);
             });
             echo "Estrutura de dados atualizada.\n";

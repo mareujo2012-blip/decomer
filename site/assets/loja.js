@@ -2,7 +2,7 @@
   'use strict';
 
   window.iniciarDeComer = function iniciarDeComer({ catalogo, loja }) {
-    const { limpar, resumir, validarNome, dinheiro, maximo, requisitar, linkPedido } = window.PedidoDeComer;
+    const { limpar, resumir, validarNome, dinheiro, maximo, requisitar, linkWhatsApp, mensagemPedido } = window.PedidoDeComer;
     const buscar = seletor => document.querySelector(seletor);
     const produtos = new Map(catalogo.map(produto => [produto.id, produto]));
     const chaveSacola = 'decomer-natal-2026-sacola';
@@ -64,7 +64,7 @@
 
     function atualizarSacola(foco) {
       resumo = resumir(carrinho, produtos);
-      const { quantidade, itens, total, sinal, restante } = resumo;
+      const { quantidade, itens, total } = resumo;
       const temItens = quantidade > 0;
       const descr = quantidadePorExtenso(quantidade);
       buscar('[data-contagem]').textContent = quantidade;
@@ -108,8 +108,6 @@
       }
       lista.replaceChildren(fragmento);
       buscar('#total').textContent = dinheiro(total);
-      buscar('#sinal').textContent = dinheiro(sinal);
-      buscar('#restante').textContent = dinheiro(restante);
       if (foco) {
         const item = [...lista.children].find(el => el.dataset.id === foco.id);
         const controle = item?.querySelector('[data-ajustar="' + foco.passo + '"]:not(:disabled)');
@@ -212,7 +210,9 @@
           tentativa = { assinatura, chave };
         }
         const requisicao = tentativa.chave;
-        await requisitar('criar', { itens, nome: comprador, telefone: contato, revisao: loja.revisao, requisicao });
+        const registrado = await requisitar('criar', { itens, nome: comprador, telefone: contato, revisao: loja.revisao, requisicao });
+        // A mensagem usa os valores calculados pelo servidor; o pagamento é combinado na conversa.
+        const conversa = linkWhatsApp(registrado.whatsapp, mensagemPedido({ ...registrado, nome: comprador }));
         for (const [id, unidades] of Object.entries(itens)) {
           if (carrinho.get(id) === unidades) carrinho.delete(id);
         }
@@ -220,14 +220,14 @@
         nome.value = telefone.value = '';
         tentativa = null;
         enviando = false;
-        confirmar.textContent = 'Ver Pix da entrada';
+        confirmar.textContent = 'Enviar pedido no WhatsApp';
         atualizarSacola();
         sacola.close();
-        location.assign(linkPedido(requisicao));
+        location.assign(conversa);
       } catch (erro) {
         mostrarErro(erro.status ? erro.message : 'Não foi possível enviar o pedido. Tente novamente.');
         enviando = false;
-        confirmar.textContent = 'Ver Pix da entrada';
+        confirmar.textContent = 'Enviar pedido no WhatsApp';
         atualizarSacola();
       }
     });

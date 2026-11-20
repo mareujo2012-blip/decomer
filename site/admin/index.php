@@ -225,7 +225,7 @@ if ($autenticado) {
     <h1>Visão geral</h1>
     <div class="metricas">
       <a href="?aba=produtos"><strong><?= count(array_filter($lista,static fn($p)=>$p['publicado'])) ?></strong><span>Produtos publicados</span></a>
-      <a href="?aba=pedidos"><strong><?= h(consulta($pdo,"SELECT COUNT(*) FROM pedidos WHERE estado IN ('confirmado','solicitado') AND (confirmado IS NOT NULL OR criado>=?)",[time()-PRAZO_PEDIDO])->fetchColumn()) ?></strong><span>Aguardando entrada</span></a>
+      <a href="?aba=pedidos"><strong><?= h($pdo->query("SELECT COUNT(*) FROM pedidos WHERE estado IN ('solicitado','confirmado')")->fetchColumn()) ?></strong><span>Pedidos em aberto</span></a>
       <a href="?aba=pagina&amp;secao=encomendas"><strong><?= encomendasAbertas($loja)?'Abertas':'Pausadas' ?></strong><span>Encomendas</span></a>
     </div>
     <?php if (empty($loja['chavePix']) || empty($loja['recebedorPix'])): ?>
@@ -362,7 +362,7 @@ if ($autenticado) {
         </ul>
         <dl class="totais"><div><dt>Total dos produtos</dt><dd><?= h(brl($pedido['total'])) ?></dd></div><div><dt>Entrada</dt><dd><?= h(brl($pedido['sinal'])) ?></dd></div><div><dt>Na retirada</dt><dd><?= h(brl($pedido['restante'])) ?></dd></div></dl>
         <?php if ($pedido['estado']==='solicitado'): ?>
-          <p class="muted">Este pedido foi feito no fluxo anterior. Confirme para disponibilizar o Pix de entrada.</p>
+          <p class="muted">Pedido enviado pela sacola. Combine o pagamento e a retirada com o cliente pelo WhatsApp e confirme aqui quando estiver acertado.</p>
           <form method="post" class="linha-form"><?php formAcao('alterar-pedido'); ?><input type="hidden" name="id" value="<?= h($pedido['codigo']) ?>"><button class="botao principal" name="modo" value="confirmar">Confirmar pedido</button><button class="botao contorno" name="modo" value="cancelar">Cancelar pedido</button></form>
         <?php endif; ?>
         <?php if ($pedido['pago']): ?>
@@ -377,7 +377,7 @@ if ($autenticado) {
           <?php $entradaPendente = $pedido['estado']==='confirmado'; ?>
           <p class="muted"><?= $entradaPendente?'A encomenda aguarda a entrada. Confira o crédito antes de registrar o pagamento.':'Combine o pagamento dos outros 50% com o cliente na retirada. Após receber, você pode registrar o saldo aqui.' ?></p>
           <?php if ($entradaPendente && $pedido['confirmado'] === null && (int)$pedido['criado'] < time()-PRAZO_PEDIDO): ?>
-            <p class="muted">O prazo para abrir o Pix no site passou. Se houve crédito no banco, confira e registre a entrada abaixo. Sem esse registro, a manutenção exclui o pedido sete dias após a criação.</p>
+            <p class="muted">O prazo para abrir o Pix no site passou. Se houve crédito no banco, confira e registre a entrada abaixo. Sem esse registro, a manutenção exclui o pedido 60 dias após a criação.</p>
           <?php endif; ?>
           <details class="risco"><summary><?= $entradaPendente?'Registrar entrada':'Registrar saldo' ?></summary>
             <?php if ($entradaPendente && $pedido['pix']): ?><p class="muted">Referência da cobrança <?= h(referenciaCobrancaPix($pedido['codigo'],'entrada')) ?></p><?php endif; ?>

@@ -40,8 +40,8 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
   <link rel="icon" href="<?= h($loja['logo'] ? $logo : 'assets/img/icone.png') ?>">
   <link rel="preload" href="assets/amatic-sc-bold.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="assets/estilo.css?v=7">
-  <script src="assets/pedido.js?v=4" defer></script>
-  <script src="assets/loja.js?v=5" defer></script>
+  <script src="assets/pedido.js?v=5" defer></script>
+  <script src="assets/loja.js?v=6" defer></script>
   <script src="assets/iniciar.js" defer></script>
   <title><?= h($titulo.' | '.$loja['submarca']) ?></title>
 </head>
@@ -161,10 +161,8 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
         <div class="pedido-resumo">
           <dl>
             <div class="pedido-total"><dt>Total dos produtos</dt><dd id="total"></dd></div>
-            <div><dt>Entrada agora · 50%</dt><dd id="sinal"></dd></div>
-            <div><dt>Na retirada · 50%</dt><dd id="restante"></dd></div>
           </dl>
-          <p>O Pix é só da entrada. Combine a retirada e o pagamento do restante com a loja.</p>
+          <p>Ao enviar, o WhatsApp abre com o seu pedido para <?= h($loja['responsavel']) ?>. O pagamento e a retirada são combinados na conversa.</p>
         </div>
         <form id="pedido" class="pedido-form" method="post" action="pedidos.php?acao=criar">
           <label for="comprador">Seu nome</label>
@@ -178,7 +176,7 @@ $marcaNoTitulo = str_ends_with($titulo,' '.$marca);
             <a href="condicoes-de-compra.php" target="_blank" rel="noopener">Condições de Compra<span class="so-leitor"> (nova aba)</span></a>
             <a href="privacidade.php" target="_blank" rel="noopener">Política de Privacidade<span class="so-leitor"> (nova aba)</span></a>
           </nav>
-          <button type="submit" class="botao botao-verde botao-whatsapp" disabled>Ver Pix da entrada</button>
+          <button type="submit" class="botao botao-verde botao-whatsapp" disabled>Enviar pedido no WhatsApp</button>
         </form>
         <p id="erro-pedido" class="erro" role="alert" hidden></p>
       </div>

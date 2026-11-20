@@ -14,8 +14,8 @@
   const copiarPix = el('copiar-pix');
   const parcelas = [...document.querySelectorAll('[data-parcela]')];
   const estadoPedido = {
-    solicitado: ['Aguardando confirmação', 'Combine a data e a disponibilidade com a loja. O Pix da entrada aparece aqui depois da confirmação.'],
-    confirmado: ['Pague 50% agora', 'Este Pix cobre apenas a entrada. Depois de pagar, toque em “Já paguei” para enviar o pedido à loja pelo WhatsApp.'],
+    solicitado: ['Pedido recebido', 'A loja combina com você o pagamento e a retirada pelo WhatsApp.'],
+    confirmado: ['Pedido confirmado', 'Combine o pagamento e a retirada com a loja pelo WhatsApp.'],
     sinal_recebido: ['Entrada confirmada', 'A loja conferiu o pagamento da entrada. Combine a retirada pelo WhatsApp.'],
     quitado: ['Pagamento completo', 'A loja confirmou o pagamento completo. Siga o combinado para retirar ou receber a encomenda.'],
     cancelado: ['Pedido cancelado', 'Fale com a loja se tiver alguma dúvida sobre este pedido.'],
@@ -119,8 +119,7 @@
       ? ['Prazo do Pix encerrado', 'Fale com a loja se você já pagou ou ainda quiser fazer a encomenda.']
       : estadoPedido[p.estado];
     el('etapa-pedido').textContent = etapa;
-    el('orientacao-pedido').textContent = (!pix && p.estado === 'confirmado' && !p.entrada_expirada)
-      ? 'O Pix da entrada está indisponível. Fale com a loja antes de pagar.' : orientacao;
+    el('orientacao-pedido').textContent = orientacao;
     if (estadoMudou) el('status-pedido').textContent = etapa;
     el('pedido-total').textContent = dinheiro(p.total);
     for (const parcela of parcelas) {
@@ -132,14 +131,13 @@
     }
     const encerrado = p.estado === 'quitado' || p.estado === 'cancelado';
     const lembrete = el('lembrete-saldo');
-    lembrete.hidden = encerrado || p.restante === 0;
+    lembrete.hidden = true;
     lembrete.textContent = 'Os outros 50% (' + dinheiro(p.restante) + ') são pagos à loja na retirada.';
     const abertura = p.entrada_expirada ? 'Olá! O prazo do Pix deste pedido encerrou e preciso de ajuda.'
       : p.estado === 'sinal_recebido' ? 'Olá! Quero combinar a retirada deste pedido.'
       : encerrado ? 'Olá! Preciso de ajuda com este pedido.'
       : 'Olá! Tenho uma dúvida sobre este pedido.';
-    el('whatsapp-loja').href = linkWhatsApp(p.whatsapp, mensagemPedido(p, { abertura }));
-    el('whatsapp-pago').href = linkWhatsApp(p.whatsapp, mensagemPedido(p, { pago: true }));
+    el('whatsapp-loja').href = linkWhatsApp(p.whatsapp, mensagemPedido(p, { abertura, fechamento: '' }));
     atualizar.hidden = !pix;
     if (pix) {
       el('pix-titular').textContent = pix.recebedor;
